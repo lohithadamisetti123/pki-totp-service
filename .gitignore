@@ -1,18 +1,6 @@
-keys/
-data/
-*.pem
-encrypted_seed.txt
-__pycache__/
-*.pyc
-.env
+# Ignore only sensitive runtime files
 
-# local secrets and runtime
-keys/
-data/
-encrypted_seed.txt
-*.pem
-
-# Sensitive encrypted seed
+# Encrypted seed (sensitive)
 encrypted_seed.txt
 
 # Python cache
@@ -25,4 +13,3 @@ __pycache__/
 # IDE/editor files
 .vscode/
 .idea/
-
