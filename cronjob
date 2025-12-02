@@ -1,0 +1,3 @@
+# /etc/cron.d/totp-cron
+# run every minute as root (minute hour day month weekday user command)
+* * * * * root /app/scripts/cron_task.sh >> /var/log/cron_task.log 2>&1

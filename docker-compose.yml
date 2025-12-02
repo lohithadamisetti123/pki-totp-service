@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pki-totp-container
+    ports:
+      - "8080:8080"
+    volumes:
+      - seed-data:/data
+      - cron-output:/cron
+      - ./keys/student_private.pem:/app/keys/student_private.pem:ro
+      - ./keys/student_public.pem:/app/keys/student_public.pem:ro
+      - ./keys/instructor_public.pem:/app/keys/instructor_public.pem:ro
+      - ./scripts:/app/scripts:ro
+    environment:
+      - TZ=UTC
+    restart: unless-stopped
+
+volumes:
+  seed-data:
+  cron-output:
