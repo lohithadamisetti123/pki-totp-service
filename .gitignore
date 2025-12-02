@@ -1,15 +1,23 @@
-# Ignore only sensitive runtime files
-
-# Encrypted seed (sensitive)
+# Ignore sensitive encrypted seed
 encrypted_seed.txt
 
-# Python cache
+# Ignore Python cache
 __pycache__/
 *.pyc
 
-# Environment files
+# Ignore environment files
 .env
 
-# IDE/editor files
+# Ignore IDE/editor files
 .vscode/
 .idea/
+
+# Ignore local data
+data/
+
+# DO NOT ignore key files that must be committed
+# student_private.pem, student_public.pem, instructor_public.pem should be tracked
+# So DO NOT add *.pem here for your project keys
+
+# Ignore Docker placeholder files if any
+.dockerignore
