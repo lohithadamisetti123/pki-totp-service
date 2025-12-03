@@ -98,3 +98,23 @@ def verify_2fa(data: VerifyCode):
     valid = totp.verify(data.code, valid_window=1)
 
     return {"valid": valid}
+@app.get("/latest-2fa")
+def latest_2fa():
+    path = "/cron/last_code.txt"   # cron volume location
+
+    if not os.path.exists(path):
+        raise HTTPException(status_code=500, detail="last_code.txt not found")
+
+    try:
+        with open(path, "r") as f:
+            lines = f.readlines()
+            last_line = lines[-1].strip()
+            code = last_line.split(":")[-1].strip()  # extract 6-digit OTP
+            return {"latest_otp": code}
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to read last OTP")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8080)
+

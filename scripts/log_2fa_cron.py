@@ -1,25 +1,26 @@
-#!/usr/bin/env python3
 import os
-from datetime import datetime
-import pyotp
 import base64
+import pyotp
+from datetime import datetime
 
-SEED_PATH = "/data/seed.txt"
+HEX_SEED = os.getenv("HEX_SEED", "")
 
-def hex_to_base32(hex_seed):
-    seed_bytes = bytes.fromhex(hex_seed)
-    return base64.b32encode(seed_bytes).decode('utf-8').rstrip('=')
+def hex_to_base32(hex_seed: str) -> str:
+    if not hex_seed or hex_seed.strip() == "":
+        return pyotp.random_base32()
+    bytes_seed = bytes.fromhex(hex_seed)
+    return base64.b32encode(bytes_seed).decode("utf-8")
 
-try:
-    with open(SEED_PATH, "r") as f:
-        hex_seed = f.read().strip()
-except FileNotFoundError:
-    print("seed.txt not found")
-    exit(1)
+def main():
+    base32_seed = hex_to_base32(HEX_SEED)
+    totp = pyotp.TOTP(base32_seed)
+    current_otp = totp.now()
 
-base32_seed = hex_to_base32(hex_seed)
-totp = pyotp.TOTP(base32_seed)
-code = totp.now()
+    timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    log = f"{timestamp} - OTP: {current_otp}\n"
 
-timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-print(f"{timestamp} - 2FA Code: {code}")
+    with open("/app/logs/2fa.log", "a") as f:
+        f.write(log)
+
+if __name__ == "__main__":
+    main()

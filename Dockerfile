@@ -1,52 +1,29 @@
-# -----------------------
-# Stage 1: Builder
-# -----------------------
-FROM python:3.11-slim as builder
-
-WORKDIR /build
-
-# Copy requirements and install dependencies
-COPY requirements.txt .
-
-RUN pip install --upgrade pip \
-    && pip install --prefix=/install -r requirements.txt
-
-# -----------------------
-# Stage 2: Runtime
-# -----------------------
 FROM python:3.11-slim
 
-# Set timezone to UTC
-ENV TZ=UTC
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        cron \
-        tzdata \
-    && ln -snf /usr/share/zoneinfo/UTC /etc/localtime \
-    && echo "UTC" > /etc/timezone \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# Install cron and timezone
+RUN apt-get update && \
+    apt-get install -y cron tzdata && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy Python packages from builder
-COPY --from=builder /install /usr/local
+ENV TZ=UTC
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-# Copy application code
-COPY app.py ./ 
-COPY keys/ ./keys/
-COPY scripts/ ./scripts/
+# Copy requirements then install
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy cron file
-COPY cron/2fa-cron /etc/cron.d/my-cron
-RUN chmod 0644 /etc/cron.d/my-cron \
-    && crontab /etc/cron.d/my-cron
+# Copy application
+COPY . .
 
-# Create volume mount points
-RUN mkdir -p /data /cron \
-    && chmod 755 /data /cron
+# Ensure directories exist
+RUN mkdir -p /data /cron
 
-# Expose port
+# Copy cron config
+COPY cron/2fa-cron /cron/2fa-cron
+RUN chmod 644 /cron/2fa-cron && crontab /cron/2fa-cron
+
 EXPOSE 8080
 
-# Start cron and FastAPI server
-CMD ["sh", "-c", "cron && uvicorn app:app --host 0.0.0.0 --port 8080"]
+CMD service cron start && python3 app.py
